@@ -96,11 +96,28 @@ public class Main extends Application {
     int w = (int) image.getWidth(), h = (int) image.getHeight(), i, j;
     PixelWriter image_writer = image.getPixelWriter();
 
-    double c = green_col / 255.0;
-    Vector col = new Vector(0.5, c, 0.5);
+    //double c = green_col / 255.0;
+    Vector col = new Vector(0.5, 0.5, 0.5);
+
+    Sphere s = new Sphere(320, 320, 0, 75);
+    Vector o = new Vector(0, 0, 0);
+    Vector d = new Vector(0, 0, 1);
 
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
+        o = new Vector(i, j, -400);
+        Vector v = o.sub(s.center);
+        double a = d.dot(d);
+        double b = v.dot(d) * 2;
+        double c = v.dot(v) - (s.radius * s.radius);
+        double disc = b*b - 4*a*c;
+        if (disc < 0) {
+          col = new Vector(0, 0, 0);
+        }
+        else {
+          col = new Vector(1, 0, 0);
+        }
+
         image_writer.setColor(i, j, Color.color(col.x, col.y, col.z, 1.0));
       } // column loop
     } // row loop
