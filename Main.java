@@ -82,6 +82,9 @@ public class Main extends Application {
     Slider r_slider = new Slider(0, 255, 0);
     Slider g_slider = new Slider(0, 255, 0);
     Slider b_slider = new Slider(0, 255, 0);
+    Slider x_slider = new Slider(0, Width, 0);
+    Slider y_slider = new Slider(0, Height, 0);
+    Slider z_slider = new Slider(0, 1000, 0);
     
     r1.setSelected(true);
     r_slider.setValue(spheres[currentIndex].colour.x * 255);
@@ -119,6 +122,33 @@ public class Main extends Application {
         }
       });
 
+      x_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+          spheres[currentIndex].center.x = newValue.intValue();
+          Render(image);
+        }
+      });
+
+      y_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+          spheres[currentIndex].center.y = newValue.intValue();
+          Render(image);
+        }
+      });
+
+      z_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+          spheres[currentIndex].center.z = newValue.intValue();
+          Render(image);
+        }
+      });
+
     tg.selectedToggleProperty().addListener(new ChangeListener<Toggle>() 
     {
       public void changed(ObservableValue<? extends Toggle> ob, Toggle o, Toggle n)
@@ -138,6 +168,9 @@ public class Main extends Application {
             r_slider.setValue(spheres[currentIndex].colour.x * 255);
             g_slider.setValue(spheres[currentIndex].colour.y * 255);
             b_slider.setValue(spheres[currentIndex].colour.z * 255);
+            x_slider.setValue(spheres[currentIndex].center.x);
+            y_slider.setValue(spheres[currentIndex].center.y);
+            z_slider.setValue(spheres[currentIndex].center.z);
           }
         }
     });
@@ -161,9 +194,12 @@ public class Main extends Application {
     root.add(r_slider, 0, 1);
     root.add(g_slider, 0, 2);
     root.add(b_slider, 0, 3);
-    root.add(r1, 1, 0 );
-    root.add(r2, 1, 1 );
-    root.add(r3, 1, 2 );
+    root.add(r1, 2, 1 );
+    root.add(r2, 2, 2 );
+    root.add(r3, 2, 3 );
+    root.add(x_slider, 3, 1);
+    root.add(y_slider, 3, 2);
+    root.add(z_slider, 3, 3);
 
     //Display to user
     Scene scene = new Scene(root, 1024, 768);
