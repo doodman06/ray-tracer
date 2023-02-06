@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.effect.Light;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.Slider;
 import javafx.scene.control.CheckBox;
@@ -40,6 +41,20 @@ import javafx.geometry.HPos;
 public class Main extends Application {
   int Width = 640;
   int Height = 640;
+  int currentIndex = 0;
+
+  //sphere colour
+  Vector s1Colour =  new Vector(1, 0, 0);
+  Vector s2Colour =  new Vector(1, 0, 0);
+  Vector s3Colour =  new Vector(1, 0, 0);
+  //sphere
+  Sphere s = new Sphere(220, 220, 0, 75, s1Colour);
+  Sphere s1 = new Sphere(220, 220, 0, 75, s1Colour);
+  Sphere s2 = new Sphere(520, 520, 0, 75, s2Colour);
+  Sphere s3 = new Sphere(420, 520, 100, 75, s3Colour);
+  
+
+  Sphere[] spheres = {s1, s2, s3};
 
   int green_col = 255; //just for the test example
 
@@ -55,17 +70,77 @@ public class Main extends Application {
     //3. Add to the pane (below)
 
     //Create the simple GUI
-    Slider g_slider = new Slider(0, 255, green_col);
+
+    ToggleGroup tg = new ToggleGroup();
+
+    RadioButton r1 = new RadioButton("Sphere 1");
+    RadioButton r2 = new RadioButton("Sphere 2");
+    RadioButton r3 = new RadioButton("Sphere 3");
+    r1.setToggleGroup(tg);
+    r2.setToggleGroup(tg);
+    r3.setToggleGroup(tg);
+    Slider r_slider = new Slider(0, 255, 0);
+    Slider g_slider = new Slider(0, 255, 0);
+    Slider b_slider = new Slider(0, 255, 0);
+    
+    r1.setSelected(true);
+    r_slider.setValue(spheres[currentIndex].colour.x * 255);
+    g_slider.setValue(spheres[currentIndex].colour.y * 255);
+    b_slider.setValue(spheres[currentIndex].colour.z * 255);
 
     //Add all the event handlers
+    r_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+          double d = newValue.intValue();
+          spheres[currentIndex].colour.x = d /255;
+          Render(image);
+        }
+      });
+
     g_slider.valueProperty().addListener(
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          green_col = newValue.intValue();
+          double d = newValue.intValue();
+          spheres[currentIndex].colour.y = d /255;
           Render(image);
         }
       });
+
+      b_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+          double d = newValue.intValue();
+          spheres[currentIndex].colour.z = d /255;
+          Render(image);
+        }
+      });
+
+    tg.selectedToggleProperty().addListener(new ChangeListener<Toggle>() 
+    {
+      public void changed(ObservableValue<? extends Toggle> ob, Toggle o, Toggle n)
+        {
+
+          RadioButton rb = (RadioButton)tg.getSelectedToggle();
+
+          if (rb != null) {
+            if(rb == r1) {
+              currentIndex = 0;
+            } else if (rb == r2) {
+              currentIndex = 1;
+            } else {
+              currentIndex = 2;
+            }
+            System.out.println(currentIndex);
+            r_slider.setValue(spheres[currentIndex].colour.x * 255);
+            g_slider.setValue(spheres[currentIndex].colour.y * 255);
+            b_slider.setValue(spheres[currentIndex].colour.z * 255);
+          }
+        }
+    });
 
     //The following is in case you want to interact with the image in any way
     //e.g., for user interaction, or you can find out the pixel position for debugging
@@ -83,7 +158,12 @@ public class Main extends Application {
     //3. (referring to the 3 things we need to display an image)
     //we need to add it to the pane
     root.add(view, 0, 0);
-    root.add(g_slider, 0, 1);
+    root.add(r_slider, 0, 1);
+    root.add(g_slider, 0, 2);
+    root.add(b_slider, 0, 3);
+    root.add(r1, 1, 0 );
+    root.add(r2, 1, 1 );
+    root.add(r3, 1, 2 );
 
     //Display to user
     Scene scene = new Scene(root, 1024, 768);
@@ -99,24 +179,49 @@ public class Main extends Application {
     //double c = green_col / 255.0;
     Vector col = new Vector(0.5, 0.5, 0.5);
 
-    Sphere s = new Sphere(320, 320, 0, 75);
+
+    
+    //camera
     Vector o = new Vector(0, 0, 0);
+    //direction of camera
     Vector d = new Vector(0, 0, 1);
+    //point of intersection
+    Vector p;
+
+    Vector light = new Vector(250, 250, -200);
 
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
         o = new Vector(i, j, -400);
-        Vector v = o.sub(s.center);
-        double a = d.dot(d);
-        double b = v.dot(d) * 2;
-        double c = v.dot(v) - (s.radius * s.radius);
-        double disc = b*b - 4*a*c;
-        if (disc < 0) {
-          col = new Vector(0, 0, 0);
+        col = new Vector(0, 0, 0);
+        double smallest = h * w;
+        int smallestIndex = -1;
+        for(int q = 0; q < spheres.length; q++){
+          if(spheres[q].intersectionPoint(o, d) > 0 && spheres[q].intersectionPoint(o, d) <= smallest ){
+            smallest = spheres[q].intersectionPoint(o, d);
+            smallestIndex = q;
+          }
         }
-        else {
-          col = new Vector(1, 0, 0);
+        if(smallestIndex < 0){
+          smallestIndex = 0;
         }
+        double t = smallest;
+        p = o.add(d.mul(t));
+        Vector lv = light.sub(p);
+        lv.normalise();
+        Vector n = p.sub(spheres[smallestIndex].center);
+        n.normalise();
+        double dp = lv.dot(n);
+        if(dp > 0) {
+          col = spheres[smallestIndex].colour.mul(dp);
+        }
+        if(dp > 1) {
+          col = spheres[smallestIndex].colour.mul(1);
+        }
+        if(dp < 0) {
+          col = spheres[smallestIndex].colour.mul(0);
+        }
+
 
         image_writer.setColor(i, j, Color.color(col.x, col.y, col.z, 1.0));
       } // column loop
