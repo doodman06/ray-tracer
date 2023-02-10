@@ -18,6 +18,10 @@ public class Sphere {
         double disc = b*b - 4*a*c;
         return (-b - Math.sqrt(disc))/(2*a);
     }
+ 
+    public Vector getAmbientColour() {
+        return new Vector(colour.x / 10, colour.y / 10, colour.z / 10);
+    }
 
 
 }

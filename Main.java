@@ -52,6 +52,8 @@ public class Main extends Application {
   Sphere s1 = new Sphere(220, 220, 0, 75, s1Colour);
   Sphere s2 = new Sphere(520, 520, 0, 75, s2Colour);
   Sphere s3 = new Sphere(420, 520, 100, 75, s3Colour);
+
+  Vector camOrigin = new Vector(0, 0, 0);
   
 
   Sphere[] spheres = {s1, s2, s3};
@@ -73,9 +75,11 @@ public class Main extends Application {
 
     ToggleGroup tg = new ToggleGroup();
 
+    RadioButton c = new RadioButton("Camera");
     RadioButton r1 = new RadioButton("Sphere 1");
     RadioButton r2 = new RadioButton("Sphere 2");
     RadioButton r3 = new RadioButton("Sphere 3");
+    c.setToggleGroup(tg);
     r1.setToggleGroup(tg);
     r2.setToggleGroup(tg);
     r3.setToggleGroup(tg);
@@ -86,7 +90,9 @@ public class Main extends Application {
     Slider y_slider = new Slider(0, Height, 0);
     Slider z_slider = new Slider(0, 1000, 0);
     
+    //set intital selected radio button
     r1.setSelected(true);
+    //set initial values of sliders
     r_slider.setValue(spheres[currentIndex].colour.x * 255);
     g_slider.setValue(spheres[currentIndex].colour.y * 255);
     b_slider.setValue(spheres[currentIndex].colour.z * 255);
@@ -96,9 +102,11 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.x = d /255;
           Render(image);
+          }
         }
       });
 
@@ -106,9 +114,11 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.y = d /255;
           Render(image);
+          }
         }
       });
 
@@ -116,9 +126,11 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.z = d /255;
           Render(image);
+          }
         }
       });
 
@@ -126,8 +138,14 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           spheres[currentIndex].center.x = newValue.intValue();
           Render(image);
+          } else {
+            camOrigin.x = newValue.intValue() - Width/2;
+            Render(image);
+          }
+          
         }
       });
 
@@ -135,8 +153,13 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           spheres[currentIndex].center.y = newValue.intValue();
           Render(image);
+          } else {
+            camOrigin.y = newValue.intValue() - Height/2;
+            Render(image);
+          }
         }
       });
 
@@ -144,33 +167,51 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
+          if(currentIndex > -1){
           spheres[currentIndex].center.z = newValue.intValue();
           Render(image);
+          } else {
+            camOrigin.z = newValue.intValue();
+            Render(image);
+          }
         }
       });
 
+    //event occurs when radio buttons are toggled
     tg.selectedToggleProperty().addListener(new ChangeListener<Toggle>() 
     {
       public void changed(ObservableValue<? extends Toggle> ob, Toggle o, Toggle n)
         {
 
+          //get currently selected radio button
           RadioButton rb = (RadioButton)tg.getSelectedToggle();
 
+          //check which radio button is selected
           if (rb != null) {
-            if(rb == r1) {
+            if(rb == c){
+              currentIndex = -1;
+            } else if(rb == r1) {
               currentIndex = 0;
-            } else if (rb == r2) {
+            } else if(rb == r2) {
               currentIndex = 1;
             } else {
               currentIndex = 2;
             }
             System.out.println(currentIndex);
+            //update sliders
+            if(currentIndex > -1){
             r_slider.setValue(spheres[currentIndex].colour.x * 255);
             g_slider.setValue(spheres[currentIndex].colour.y * 255);
             b_slider.setValue(spheres[currentIndex].colour.z * 255);
             x_slider.setValue(spheres[currentIndex].center.x);
             y_slider.setValue(spheres[currentIndex].center.y);
             z_slider.setValue(spheres[currentIndex].center.z);
+            }
+            else {
+              x_slider.setValue(camOrigin.x + Width/2);
+              y_slider.setValue(camOrigin.y + Height/2);
+              z_slider.setValue(camOrigin.z);
+            }
           }
         }
     });
@@ -190,13 +231,15 @@ public class Main extends Application {
 
     //3. (referring to the 3 things we need to display an image)
     //we need to add it to the pane
+    //add everhting to the grid
     root.add(view, 0, 0);
     root.add(r_slider, 0, 1);
     root.add(g_slider, 0, 2);
     root.add(b_slider, 0, 3);
-    root.add(r1, 2, 1 );
-    root.add(r2, 2, 2 );
-    root.add(r3, 2, 3 );
+    root.add(c, 2, 1 );
+    root.add(r1, 2, 2 );
+    root.add(r2, 2, 3 );
+    root.add(r3, 2, 4 );
     root.add(x_slider, 3, 1);
     root.add(y_slider, 3, 2);
     root.add(z_slider, 3, 3);
@@ -224,39 +267,54 @@ public class Main extends Application {
     //point of intersection
     Vector p;
 
+    //source of light origin
     Vector light = new Vector(250, 250, -200);
+    //colour of light
+    Vector lightColour = new Vector (1, 1, 1);
 
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
-        o = new Vector(i, j, -400);
+        o = camOrigin.add(new Vector(i, j, -400));
         col = new Vector(0, 0, 0);
         double smallest = h * w;
         int smallestIndex = -1;
+        //check closest point among all spheres
         for(int q = 0; q < spheres.length; q++){
           if(spheres[q].intersectionPoint(o, d) > 0 && spheres[q].intersectionPoint(o, d) <= smallest ){
             smallest = spheres[q].intersectionPoint(o, d);
             smallestIndex = q;
           }
         }
+        //if no closest point set colour to 0.
         if(smallestIndex < 0){
-          smallestIndex = 0;
+          col = new Vector(0, 0, 0);
         }
-        double t = smallest;
-        p = o.add(d.mul(t));
-        Vector lv = light.sub(p);
-        lv.normalise();
-        Vector n = p.sub(spheres[smallestIndex].center);
-        n.normalise();
-        double dp = lv.dot(n);
-        if(dp > 0) {
-          col = spheres[smallestIndex].colour.mul(dp);
+        else {
+          //calculate cos theta
+          double t = smallest;
+          p = o.add(d.mul(t));
+          Vector lv = light.sub(p);
+          lv.normalise();
+          Vector n = p.sub(spheres[smallestIndex].center);
+          n.normalise();
+          double dp = lv.dot(n);
+          //calculate ambient colour
+          Vector ambient = spheres[smallestIndex].getAmbientColour();
+          Vector diffuse;
+          if(dp > 0) {
+            diffuse = spheres[smallestIndex].colour.mul(dp);
+          }
+          else if(dp > 1) {
+            diffuse = spheres[smallestIndex].colour.mul(1);
+          }
+          else {
+            diffuse = spheres[smallestIndex].colour.mul(0);
+          }
+          //calculate final colour of pixel
+          col = ambient.colourAdd(diffuse).multiply(lightColour);
         }
-        if(dp > 1) {
-          col = spheres[smallestIndex].colour.mul(1);
-        }
-        if(dp < 0) {
-          col = spheres[smallestIndex].colour.mul(0);
-        }
+
+        
 
 
         image_writer.setColor(i, j, Color.color(col.x, col.y, col.z, 1.0));
