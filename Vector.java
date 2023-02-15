@@ -57,4 +57,8 @@ public class Vector {
     return new Vector(x * a.x, y * a.y, z * a.z);
   }
 
+  public Vector inverse() {
+    return new Vector(-x, -y, -z);
+  }
+
 }

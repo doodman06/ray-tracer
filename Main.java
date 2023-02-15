@@ -42,21 +42,33 @@ public class Main extends Application {
   int Width = 640;
   int Height = 640;
   int currentIndex = 0;
+  double azDegree = 0;
+  double altDegree = 0;
+  double distance = 600;
 
   //sphere colour
   Vector s1Colour =  new Vector(1, 0, 0);
-  Vector s2Colour =  new Vector(1, 0, 0);
-  Vector s3Colour =  new Vector(1, 0, 0);
+  Vector s2Colour =  new Vector(1, 0, 1);
+  Vector s3Colour =  new Vector(1, 0.5, 0);
+  Vector s4Colour =  new Vector(0, 0.5, 1);
   //sphere
-  Sphere s = new Sphere(220, 220, 0, 75, s1Colour);
-  Sphere s1 = new Sphere(220, 220, 0, 75, s1Colour);
-  Sphere s2 = new Sphere(520, 520, 0, 75, s2Colour);
-  Sphere s3 = new Sphere(420, 520, 100, 75, s3Colour);
+  Sphere s = new Sphere(220, 220, -100, 75, s1Colour);
+  Sphere s1 = new Sphere(320, 220, -100, 50, s1Colour);
+  Sphere s2 = new Sphere(420, 320, 0, 75, s2Colour);
+  Sphere s3 = new Sphere(320, 120, 200, 100, s3Colour);
+  Sphere s4 = new Sphere(320, 520, 100, 150, s4Colour);
 
-  Vector camOrigin = new Vector(0, 0, 0);
+  //direction of camera
+  Vector d = Camera.getVPN();
   
 
-  Sphere[] spheres = {s1, s2, s3};
+  Vector center = new Vector(Width / 2, Height / 2, 50);
+
+
+  Vector camOrigin = Camera.getVRP(center, distance);
+  
+
+  Sphere[] spheres = {s1, s2, s3, s4};
 
   int green_col = 255; //just for the test example
 
@@ -75,20 +87,36 @@ public class Main extends Application {
 
     ToggleGroup tg = new ToggleGroup();
 
-    RadioButton c = new RadioButton("Camera");
+    
     RadioButton r1 = new RadioButton("Sphere 1");
     RadioButton r2 = new RadioButton("Sphere 2");
     RadioButton r3 = new RadioButton("Sphere 3");
-    c.setToggleGroup(tg);
+    RadioButton r4 = new RadioButton("Sphere 4");
+   
     r1.setToggleGroup(tg);
     r2.setToggleGroup(tg);
     r3.setToggleGroup(tg);
+    r4.setToggleGroup(tg);
     Slider r_slider = new Slider(0, 255, 0);
     Slider g_slider = new Slider(0, 255, 0);
     Slider b_slider = new Slider(0, 255, 0);
     Slider x_slider = new Slider(0, Width, 0);
     Slider y_slider = new Slider(0, Height, 0);
     Slider z_slider = new Slider(0, 1000, 0);
+    Slider az_slider = new Slider(0, 360, 180);
+    Slider alt_slider = new Slider(-89, 89, 0);
+
+    //create labels
+    Label r_label = new Label("Red");
+    Label g_label = new Label("Blue");
+    Label b_label = new Label("Green");
+
+    Label x_label = new Label("X Coordinate");
+    Label y_label = new Label("Y Coordinate");
+    Label z_label = new Label("Z Coordinate");
+
+    Label az_label = new Label("Camera Azimuth");
+    Label alt_label = new Label("Camera Altitude");
     
     //set intital selected radio button
     r1.setSelected(true);
@@ -96,17 +124,18 @@ public class Main extends Application {
     r_slider.setValue(spheres[currentIndex].colour.x * 255);
     g_slider.setValue(spheres[currentIndex].colour.y * 255);
     b_slider.setValue(spheres[currentIndex].colour.z * 255);
+    x_slider.setValue(spheres[currentIndex].center.x);
+    y_slider.setValue(spheres[currentIndex].center.y);
+    z_slider.setValue(spheres[currentIndex].center.z);
 
     //Add all the event handlers
     r_slider.valueProperty().addListener(
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.x = d /255;
           Render(image);
-          }
         }
       });
 
@@ -114,11 +143,9 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.y = d /255;
           Render(image);
-          }
         }
       });
 
@@ -126,11 +153,9 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           double d = newValue.intValue();
           spheres[currentIndex].colour.z = d /255;
           Render(image);
-          }
         }
       });
 
@@ -138,13 +163,8 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           spheres[currentIndex].center.x = newValue.intValue();
           Render(image);
-          } else {
-            camOrigin.x = newValue.intValue() - Width/2;
-            Render(image);
-          }
           
         }
       });
@@ -153,13 +173,8 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           spheres[currentIndex].center.y = newValue.intValue();
           Render(image);
-          } else {
-            camOrigin.y = newValue.intValue() - Height/2;
-            Render(image);
-          }
         }
       });
 
@@ -167,14 +182,60 @@ public class Main extends Application {
       new ChangeListener < Number > () {
         public void changed(ObservableValue < ? extends Number >
           observable, Number oldValue, Number newValue) {
-          if(currentIndex > -1){
           spheres[currentIndex].center.z = newValue.intValue();
           Render(image);
-          } else {
-            camOrigin.z = newValue.intValue();
-            Render(image);
-          }
+          
         }
+      });
+
+      az_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+
+            double  newDegree = 180 - newValue.intValue();
+            double difference = azDegree - newDegree;
+            azDegree = newDegree;
+            Camera.rotateVRV(difference);
+            d= Camera.getVPN();
+        /* 
+            double t = 600;
+            Camera.VRP.x = center.x -d.x * t;
+            Camera.VRP.z = center.z -d.z * t; */
+            Camera.getVRP(center, 600);
+            System.out.println(Camera.VRP.x);
+            System.out.println(Camera.VRP.y);
+            System.out.println(Camera.VRP.z);
+            System.out.println(Camera.VRP.x + Camera.VPN.x * 600);
+            System.out.println(Camera.VRP.y + Camera.VPN.y * 600);
+            System.out.println(Camera.VRP.z + Camera.VPN.z * 600);
+            Render(image);
+          
+        }
+
+        
+      });
+
+      alt_slider.valueProperty().addListener(
+      new ChangeListener < Number > () {
+        public void changed(ObservableValue < ? extends Number >
+          observable, Number oldValue, Number newValue) {
+
+            double  newDegree =newValue.intValue();
+            double difference = altDegree - newDegree;
+            altDegree = newDegree;
+            Camera.rotateVUV(difference);
+            d= Camera.getVPN();
+        
+           /*  double t = 600;
+            Camera.VRP.y = center.y -d.y * t;
+            Camera.VRP.z = center.z -d.z * t; */
+            Camera.getVRP(center, 600);
+            Render(image);
+          
+        }
+
+        
       });
 
     //event occurs when radio buttons are toggled
@@ -188,30 +249,25 @@ public class Main extends Application {
 
           //check which radio button is selected
           if (rb != null) {
-            if(rb == c){
-              currentIndex = -1;
-            } else if(rb == r1) {
+            
+            if(rb == r1) {
               currentIndex = 0;
             } else if(rb == r2) {
               currentIndex = 1;
-            } else {
+            } else if(rb == r3) {
               currentIndex = 2;
+            } else {
+              currentIndex = 3;
             }
+
             System.out.println(currentIndex);
             //update sliders
-            if(currentIndex > -1){
             r_slider.setValue(spheres[currentIndex].colour.x * 255);
             g_slider.setValue(spheres[currentIndex].colour.y * 255);
             b_slider.setValue(spheres[currentIndex].colour.z * 255);
             x_slider.setValue(spheres[currentIndex].center.x);
             y_slider.setValue(spheres[currentIndex].center.y);
             z_slider.setValue(spheres[currentIndex].center.z);
-            }
-            else {
-              x_slider.setValue(camOrigin.x + Width/2);
-              y_slider.setValue(camOrigin.y + Height/2);
-              z_slider.setValue(camOrigin.z);
-            }
           }
         }
     });
@@ -233,19 +289,34 @@ public class Main extends Application {
     //we need to add it to the pane
     //add everhting to the grid
     root.add(view, 0, 0);
-    root.add(r_slider, 0, 1);
-    root.add(g_slider, 0, 2);
-    root.add(b_slider, 0, 3);
-    root.add(c, 2, 1 );
-    root.add(r1, 2, 2 );
-    root.add(r2, 2, 3 );
-    root.add(r3, 2, 4 );
-    root.add(x_slider, 3, 1);
-    root.add(y_slider, 3, 2);
-    root.add(z_slider, 3, 3);
+
+    root.add(r_label, 0, 1);
+    root.add(r_slider, 0, 2);
+    root.add(g_label, 0, 3);
+    root.add(g_slider, 0, 4);
+    root.add(b_label, 0, 5);
+    root.add(b_slider, 0, 6);
+    
+    root.add(x_label, 0, 7);
+    root.add(x_slider, 0, 8);
+    root.add(y_label, 0, 9);
+    root.add(y_slider, 0, 10);
+    root.add(z_label, 0, 11);
+    root.add(z_slider, 0, 12);
+
+    root.add(r1, 2, 1 );
+    root.add(r2, 2, 2 );
+    root.add(r3, 2, 3 );
+    root.add(r4, 2, 4 );
+
+    root.add(az_label, 2, 5);
+    root.add(az_slider, 2, 6);
+    root.add(alt_label, 2, 7);
+    root.add(alt_slider, 2, 8);
+
 
     //Display to user
-    Scene scene = new Scene(root, 1024, 768);
+    Scene scene = new Scene(root, 1024, 1024);
     stage.setScene(scene);
     stage.show();
   }
@@ -262,8 +333,7 @@ public class Main extends Application {
     
     //camera
     Vector o = new Vector(0, 0, 0);
-    //direction of camera
-    Vector d = new Vector(0, 0, 1);
+    
     //point of intersection
     Vector p;
 
@@ -272,9 +342,12 @@ public class Main extends Application {
     //colour of light
     Vector lightColour = new Vector (1, 1, 1);
 
+    camOrigin = Camera.getCamOrigin(w/2, h/2);
+
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
-        o = camOrigin.add(new Vector(i, j, -400));
+        o = (camOrigin.add(Camera.VRV.mul(i))).add(Camera.VUV.mul(j));
+        d = Camera.getVPN();
         col = new Vector(0, 0, 0);
         double smallest = h * w;
         int smallestIndex = -1;
