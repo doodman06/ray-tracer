@@ -16,7 +16,13 @@ public class Sphere {
         double b = v.dot(d) * 2;
         double c = v.dot(v) - (radius * radius);
         double disc = b*b - 4*a*c;
-        return (-b - Math.sqrt(disc))/(2*a);
+        if( disc < 0){
+            return -1;
+        }
+        if(((-b + Math.sqrt(disc))/(2*a)) > 0 && ((-b + Math.sqrt(disc))/(2*a)) < ((-b - Math.sqrt(disc))/(2*a))){
+            return ((-b + Math.sqrt(disc))/(2*a));
+        }
+        return ((-b - Math.sqrt(disc))/(2*a));
     }
  
     public Vector getAmbientColour() {

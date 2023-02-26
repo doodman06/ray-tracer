@@ -36,7 +36,7 @@ public class Camera {
 
     public static Vector getCamOrigin(int w, int h){
 
-        return (VRP.sub(VRV.mul(w))).sub(VUV.mul(h));
+        return (VRP.sub(VRV.mul(w/2))).sub(VUV.mul(h/2));
     }
 
 

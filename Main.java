@@ -326,11 +326,8 @@ public class Main extends Application {
     int w = (int) image.getWidth(), h = (int) image.getHeight(), i, j;
     PixelWriter image_writer = image.getPixelWriter();
 
-    //double c = green_col / 255.0;
-    Vector col = new Vector(0.5, 0.5, 0.5);
+    Vector col = new Vector(0, 0, 0);
 
-
-    
     //camera
     Vector o = new Vector(0, 0, 0);
     
@@ -342,14 +339,14 @@ public class Main extends Application {
     //colour of light
     Vector lightColour = new Vector (1, 1, 1);
 
-    camOrigin = Camera.getCamOrigin(w/2, h/2);
+    camOrigin = Camera.getCamOrigin(w, h);
 
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
         o = (camOrigin.add(Camera.VRV.mul(i))).add(Camera.VUV.mul(j));
         d = Camera.getVPN();
         col = new Vector(0, 0, 0);
-        double smallest = h * w;
+        double smallest = h * w * 1000;
         int smallestIndex = -1;
         //check closest point among all spheres
         for(int q = 0; q < spheres.length; q++){
