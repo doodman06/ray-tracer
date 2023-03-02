@@ -102,7 +102,7 @@ public class Main extends Application {
     Slider b_slider = new Slider(0, 255, 0);
     Slider x_slider = new Slider(0, Width, 0);
     Slider y_slider = new Slider(0, Height, 0);
-    Slider z_slider = new Slider(0, 1000, 0);
+    Slider z_slider = new Slider(-500, 1000, 0);
     Slider az_slider = new Slider(0, 360, 180);
     Slider alt_slider = new Slider(-89, 89, 0);
 
@@ -198,17 +198,7 @@ public class Main extends Application {
             azDegree = newDegree;
             Camera.rotateVRV(difference);
             d= Camera.getVPN();
-        /* 
-            double t = 600;
-            Camera.VRP.x = center.x -d.x * t;
-            Camera.VRP.z = center.z -d.z * t; */
             Camera.getVRP(center, 600);
-            System.out.println(Camera.VRP.x);
-            System.out.println(Camera.VRP.y);
-            System.out.println(Camera.VRP.z);
-            System.out.println(Camera.VRP.x + Camera.VPN.x * 600);
-            System.out.println(Camera.VRP.y + Camera.VPN.y * 600);
-            System.out.println(Camera.VRP.z + Camera.VPN.z * 600);
             Render(image);
           
         }
@@ -226,10 +216,6 @@ public class Main extends Application {
             altDegree = newDegree;
             Camera.rotateVUV(difference);
             d= Camera.getVPN();
-        
-           /*  double t = 600;
-            Camera.VRP.y = center.y -d.y * t;
-            Camera.VRP.z = center.z -d.z * t; */
             Camera.getVRP(center, 600);
             Render(image);
           
@@ -339,11 +325,12 @@ public class Main extends Application {
     //colour of light
     Vector lightColour = new Vector (1, 1, 1);
 
+    //get top left corner of screen
     camOrigin = Camera.getCamOrigin(w, h);
 
     for (j = 0; j < h; j++) {
       for (i = 0; i < w; i++) {
-        o = (camOrigin.add(Camera.VRV.mul(i))).add(Camera.VUV.mul(j));
+        o = (camOrigin.add(Camera.VRV.mul(i))).sub(Camera.VUV.mul(j));
         d = Camera.getVPN();
         col = new Vector(0, 0, 0);
         double smallest = h * w * 1000;
